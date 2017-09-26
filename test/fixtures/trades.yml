@@ -1,0 +1,17 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  sell_exchange: MyString
+  buy_exchange: MyString
+  sell_exchange_rate: 1.5
+  buy_exchange_rate: 1.5
+  delta: 1.5
+  trade_amount_eth: 1.5
+
+two:
+  sell_exchange: MyString
+  buy_exchange: MyString
+  sell_exchange_rate: 1.5
+  buy_exchange_rate: 1.5
+  delta: 1.5
+  trade_amount_eth: 1.5
