@@ -8,7 +8,7 @@ class TradesController < ApplicationController
   end
 
   def check_trades
-    liqui_response = HTTParty.get('https://api.liqui.io/api/3/depth/eth_btc?limit=10',format: :JSON)
+    liqui_response = HTTParty.get('https://api.liqui.io/api/3/depth/eth_btc?limit=10')
     poloniex_response = HTTParty.get('https://poloniex.com/public?command=returnOrderBook&currencyPair=BTC_ETH&depth=10')
     puts liqui_response.body
     puts poloniex_response.body

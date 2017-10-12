@@ -15,5 +15,36 @@ class Trade < ApplicationRecord
         { buy_on_liqui: liqui_sell,
           buy_on_poloniex: poloniex_sell}
         }
+    profitable_trade(top_trades)
+  end
+
+  def self.find_highest_sell(sells)
+    (sells.max_by{|k,v| v})
+  end
+
+  def self.find_lowest_buy(buys)
+    (buys.min_by{|k,v| v})
+  end
+
+  def self.profitable_trade(trades)
+    counter = 0
+    high_sell = find_highest_sell(trades[:sells])
+    low_buy = find_lowest_buy(trades[:buys])
+    if high_sell[1][0] >= (low_buy[1][0] * ((1 + 0.0025)/ ( 1 - 0.0026)))
+      find_highest_amount([high_sell, low_buy])
+    end
+  end
+
+  def self.find_highest_amount(data)
+    # data is in a format of [sellexchange: [rate, eth_amount], buyexchang: [rate, eth_amount]]
+    if (data[0][1][1] < data[1][1][1])
+      write_to_table([ data[0][0], data[0][1][0], data[1][0], data[1][1][0], data[0][1][1], Time.now ])
+    else
+      write_to_table( [ data[0][0], data[0][1][0], data[1][0], data[1][1][0], data[1][1][1], Time.now] )
+    end
+  end
+
+  def self.write_to_table(data)
+    Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
   end
 end
