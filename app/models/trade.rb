@@ -3,6 +3,8 @@ class Trade < ApplicationRecord
     # liqui_response = HTTParty.get('https://api.liqui.io/api/3/depth/eth_btc?limit=10')
     # quadrigacx_response = HTTParty.get('https://api.quadrigacx.com/public/orders?book=eth_btc&group=1')
     # poloniex_response = HTTParty.get('https://poloniex.com/public?command=returnOrderBook&currencyPair=BTC_ETH&depth=10')
+
+    # calls to the apis are made on in the controller and passed down
     liqui_sell = liqui_response["eth_btc"]["asks"][0]
     liqui_buy = liqui_response["eth_btc"]["bids"][0]
     poloniex_sell = [(poloniex_response["asks"][0][0]).to_f, poloniex_response["asks"][0][1]]
@@ -27,10 +29,13 @@ class Trade < ApplicationRecord
   end
 
   def self.profitable_trade(trades)
-    counter = 0
+    # determines which exchange has the highest sell and lowest buy
+    # then we check if the difference is in our margin
     high_sell = find_highest_sell(trades[:sells])
     low_buy = find_lowest_buy(trades[:buys])
     if high_sell[1][0] >= (low_buy[1][0] * ((1 + 0.0025)/ ( 1 - 0.0026)))
+      # if there is an opportunity we check to see which one has the lowest volume
+      # this becomes the highest amount we can buy/sell
       find_highest_amount([high_sell, low_buy])
     end
   end
