@@ -33,9 +33,10 @@ class Trade < ApplicationRecord
   def self.profitable_trade(trades)
     # determines which exchange has the highest sell and lowest buy
     # then we check if the difference is in our margin
+    margin = 0.00#2
     high_sell = find_highest_sell(trades[:sells])
     low_buy = find_lowest_buy(trades[:buys])
-    if high_sell[1][0] <= (low_buy[1][0] * ((1 + 0.0025)/ ( 1 - 0.0026)))
+    if high_sell[1][0] >= (low_buy[1][0] * ((1 + 0.0025)/ ( 1 - 0.0026)) + margin)
       # if there is an opportunity we check to see which one has the lowest volume
       # this becomes the highest amount we can buy/sell
       find_highest_amount([high_sell, low_buy])
@@ -186,7 +187,6 @@ class Trade < ApplicationRecord
 
   def self.write_to_table(data)
     Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
-    # check_wallets(data)
-    puts data[0] == :sell_on_poloniex
+    check_wallets(data)
   end
 end
