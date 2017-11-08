@@ -51,6 +51,40 @@ class Trade < ApplicationRecord
     end
   end
 
+  def self.check_open_orders(data, liqui_wallet, poloniex_wallet)
+    liqui_post_url = 'https://api.liqui.io/tapi'
+    poloniex_post_url = 'https://poloniex.com/tradingApi'
+
+    nonce = Time.now().to_i
+
+    open_order_command_liqui= "nonce=#{nonce}&method=activeOrders"
+    open_order_command_poloniex = "command=returnOpenOrders&currencyPair=BTC_ETH&nonce=#{nonce}"
+
+    poloniex_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], open_order_command_poloniex)
+    liqui_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], open_order_command_liqui)
+
+    poloniex_headers = {
+    "key" => ENV['POLONIEX_KEY'],
+    "sign" => poloniex_signature,
+    'Content-Type':  'application/x-www-form-urlencoded'
+    }
+
+    liqui_headers = {
+    "key" => ENV['LIQUI_KEY'],
+    "sign" => liqui_signature,
+    'Content-Type':  'application/x-www-form-urlencoded'
+    }
+
+    poloniex_wallet_response = HTTParty.post(poloniex_post_url, body: open_order_command_poloniex, headers: poloniex_headers)
+    liqui_wallet_response = HTTParty.post(liqui_post_url, body: open_order_command_liqui, headers: liqui_headers)
+
+    if poloniex_wallet_response.empty? && liqui_wallet_response["return"].empty?
+      make_trade(data, liqui_wallet, poloniex_wallet)
+    else
+      puts "waiting for orders to fill"
+    end
+  end
+
   def self.check_wallets(data)
     liqui_post_url = 'https://api.liqui.io/tapi'
     poloniex_post_url = 'https://poloniex.com/tradingApi'
@@ -78,7 +112,8 @@ class Trade < ApplicationRecord
     poloniex_wallet_response = HTTParty.post(poloniex_post_url, body: wallet_command_poloniex, headers: poloniex_headers)
 
     puts liqui_wallet_response, poloniex_wallet_response
-    
+
+    check_open_orders(data, liqui_wallet_response, poloniex_wallet_response)
   end
 
   def self.write_to_table(data)
