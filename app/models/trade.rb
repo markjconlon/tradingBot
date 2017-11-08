@@ -54,7 +54,8 @@ class Trade < ApplicationRecord
   def self.make_trade(data, liqui_wallet, poloniex_wallet)
     maximum_volume_available = data[4]
     our_volume_limit = 0.01 #ETH
-    rate = 0.03
+    sell_rate = data[1]
+    buy_rate = data[3]
 
     liqui_post_url = 'https://api.liqui.io/tapi'
     poloniex_post_url = 'https://poloniex.com/tradingApi'
@@ -62,39 +63,58 @@ class Trade < ApplicationRecord
     nonce = Time.now().to_i
 
     if maximum_volume_available > our_volume_limit
-      # sell_order_command_liqui= "nonce=#{nonce}&method=trade&pair=eth_btc&type=sell&rate=#{rate}&amount=#{our_volume_limit}"
-      buy_order_command_liqui= "nonce=#{nonce}&method=trade&pair=eth_btc&type=buy&rate=#{rate}&amount=#{our_volume_limit}"
 
-      # sell_order_command_poloniex = "command=sell&currencyPair=BTC_ETH&rate=#{rate}&amount=#{our_volume_limit}&nonce=#{nonce}"
-      # buy_order_command_poloniex = "command=buy&currencyPair=BTC_ETH&rate=#{rate}&amount=#{our_volume_limit}&nonce=#{nonce}"
-      #
-      # liqui_sell_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], sell_order_command_liqui)
-      liqui_buy_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], buy_order_command_liqui)
+      if data[0] == :sell_on_poloniex && data[2] == :buy_on_liqui
 
-      # poloniex_sell_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], sell_order_command_poloniex)
-      # poloniex_buy_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], buy_order_command_poloniex)
+        sell_order_command_poloniex = "command=sell&currencyPair=BTC_ETH&rate=#{sell_rate}&amount=#{our_volume_limit}&nonce=#{nonce}"
+        buy_order_command_liqui= "nonce=#{nonce}&method=trade&pair=eth_btc&type=buy&rate=#{buy_rate}&amount=#{our_volume_limit}"
 
+        poloniex_sell_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], sell_order_command_poloniex)
+        liqui_buy_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], buy_order_command_liqui)
 
-      # poloniex_headers = {
-      #   "key" => ENV['POLONIEX_KEY'],
-      #   "sign" => poloniex_buy_signature,
-      #   'Content-Type':  'application/x-www-form-urlencoded'
-      # }
+        poloniex_headers = {
+          "key" => ENV['POLONIEX_KEY'],
+          "sign" => poloniex_sell_signature,
+          'Content-Type':  'application/x-www-form-urlencoded'
+        }
 
-      liqui_headers = {
-        "key" => ENV['LIQUI_KEY'],
-        "sign" => liqui_buy_signature,
-        'Content-Type':  'application/x-www-form-urlencoded'
-      }
+        liqui_headers = {
+          "key" => ENV['LIQUI_KEY'],
+          "sign" => liqui_buy_signature,
+          'Content-Type':  'application/x-www-form-urlencoded'
+        }
 
-      # liqui_sell_wallet_response = HTTParty.post(liqui_post_url, body: sell_order_command_liqui, headers: liqui_headers)
-      liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
+        # poloniex_sell_wallet_response = HTTParty.post(poloniex_post_url, body: sell_order_command_poloniex, headers: poloniex_headers)
+        # liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
 
-      # poloniex_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
+        puts "SELL ON POLONIEX AND BUY ON LIQUI"
 
-      # might want to check that each trade posted successfully, as takers we couldn't call the wallet again, but we might want to save the post responses
-      puts liqui_buy_wallet_response
-      # puts poloniex_wallet_response
+      elsif data[0] == :sell_on_liqui && data[2] == :buy_on_poloniex
+
+        sell_order_command_liqui= "nonce=#{nonce}&method=trade&pair=eth_btc&type=sell&rate=#{sell_rate}&amount=#{our_volume_limit}"
+        buy_order_command_poloniex = "command=buy&currencyPair=BTC_ETH&rate=#{buy_rate}&amount=#{our_volume_limit}&nonce=#{nonce}"
+
+        liqui_sell_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], sell_order_command_liqui)
+        poloniex_buy_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], buy_order_command_poloniex)
+
+        liqui_headers = {
+          "key" => ENV['LIQUI_KEY'],
+          "sign" => liqui_sell_signature,
+          'Content-Type':  'application/x-www-form-urlencoded'
+        }
+
+        poloniex_headers = {
+          "key" => ENV['POLONIEX_KEY'],
+          "sign" => poloniex_buy_signature,
+          'Content-Type':  'application/x-www-form-urlencoded'
+        }
+
+        # liqui_sell_wallet_response = HTTParty.post(liqui_post_url, body: sell_order_command_liqui, headers: liqui_headers)
+        # poloniex_buy_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
+
+        puts "SELL ON LIQUI AND BUY ON POLONIEX"
+      end
+
     end
 
   end
@@ -166,6 +186,7 @@ class Trade < ApplicationRecord
 
   def self.write_to_table(data)
     Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
-    check_wallets(data)
+    # check_wallets(data)
+    puts data[0] == :sell_on_poloniex
   end
 end
