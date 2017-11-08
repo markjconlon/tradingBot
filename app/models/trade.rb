@@ -62,31 +62,39 @@ class Trade < ApplicationRecord
     nonce = Time.now().to_i
 
     if maximum_volume_available > our_volume_limit
-      # sell_order_command_liqui= "nonce=#{nonce}&method=activeOrders"
-      sell_order_command_poloniex = "command=sell&currencyPair=BTC_ETH&rate=#{rate}&amount=#{our_volume_limit}&nonce=#{nonce}"
-      buy_order_command_poloniex = "command=buy&currencyPair=BTC_ETH&rate=#{rate}&amount=#{our_volume_limit}&nonce=#{nonce}"
+      # sell_order_command_liqui= "nonce=#{nonce}&method=trade&pair=eth_btc&type=sell&rate=#{rate}&amount=#{our_volume_limit}"
+      buy_order_command_liqui= "nonce=#{nonce}&method=trade&pair=eth_btc&type=buy&rate=#{rate}&amount=#{our_volume_limit}"
 
-      poloniex_sell_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], sell_order_command_poloniex)
-      poloniex_buy_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], buy_order_command_poloniex)
+      # sell_order_command_poloniex = "command=sell&currencyPair=BTC_ETH&rate=#{rate}&amount=#{our_volume_limit}&nonce=#{nonce}"
+      # buy_order_command_poloniex = "command=buy&currencyPair=BTC_ETH&rate=#{rate}&amount=#{our_volume_limit}&nonce=#{nonce}"
+      #
+      # liqui_sell_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], sell_order_command_liqui)
+      liqui_buy_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], buy_order_command_liqui)
 
-      # liqui_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], open_order_command_liqui)
+      # poloniex_sell_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], sell_order_command_poloniex)
+      # poloniex_buy_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], buy_order_command_poloniex)
 
-      poloniex_headers = {
-        "key" => ENV['POLONIEX_KEY'],
-        "sign" => poloniex_buy_signature,
-        'Content-Type':  'application/x-www-form-urlencoded'
-      }
 
-      # liqui_headers = {
-      #   "key" => ENV['LIQUI_KEY'],
-      #   "sign" => liqui_signature,
+      # poloniex_headers = {
+      #   "key" => ENV['POLONIEX_KEY'],
+      #   "sign" => poloniex_buy_signature,
       #   'Content-Type':  'application/x-www-form-urlencoded'
       # }
 
-      poloniex_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
+      liqui_headers = {
+        "key" => ENV['LIQUI_KEY'],
+        "sign" => liqui_buy_signature,
+        'Content-Type':  'application/x-www-form-urlencoded'
+      }
+
+      # liqui_sell_wallet_response = HTTParty.post(liqui_post_url, body: sell_order_command_liqui, headers: liqui_headers)
+      liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
+
+      # poloniex_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
 
       # might want to check that each trade posted successfully, as takers we couldn't call the wallet again, but we might want to save the post responses
-      puts poloniex_wallet_response
+      puts liqui_buy_wallet_response
+      # puts poloniex_wallet_response
     end
 
   end
