@@ -35,7 +35,7 @@ class Trade < ApplicationRecord
     # then we check if the difference is in our margin
     high_sell = find_highest_sell(trades[:sells])
     low_buy = find_lowest_buy(trades[:buys])
-    if high_sell[1][0] >= (low_buy[1][0] * ((1 + 0.0025)/ ( 1 - 0.0026)))
+    if high_sell[1][0] <= (low_buy[1][0] * ((1 + 0.0025)/ ( 1 - 0.0026)))
       # if there is an opportunity we check to see which one has the lowest volume
       # this becomes the highest amount we can buy/sell
       find_highest_amount([high_sell, low_buy])
@@ -51,7 +51,37 @@ class Trade < ApplicationRecord
     end
   end
 
+  def self.check_wallets(data)
+    liqui_post_url = 'https://api.liqui.io/tapi'
+    poloniex_post_url = 'https://poloniex.com/tradingApi'
+
+    nonce = Time.now().to_i
+    wallet_command_poloniex = "command=returnBalances&nonce=#{nonce}"
+    wallet_command_liqui= "nonce=#{nonce}&method=getInfo"
+
+    liqui_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], wallet_command_liqui)
+    poloniex_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], wallet_command_poloniex)
+
+    liqui_headers = {
+    "key" => ENV['LIQUI_KEY'],
+    "sign" => liqui_signature,
+    'Content-Type':  'application/x-www-form-urlencoded'
+    }
+
+    poloniex_headers = {
+    "key" => ENV['POLONIEX_KEY'],
+    "sign" => poloniex_signature,
+    'Content-Type':  'application/x-www-form-urlencoded'
+    }
+
+    liqui_wallet_response = HTTParty.post(liqui_post_url, body: wallet_command_liqui, headers: liqui_headers)
+    poloniex_wallet_response = HTTParty.post(poloniex_post_url, body: wallet_command_poloniex, headers: poloniex_headers)
+
+    puts liqui_wallet_response, poloniex_wallet_response
+  end
+
   def self.write_to_table(data)
     Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
+    check_wallets(data)
   end
 end
