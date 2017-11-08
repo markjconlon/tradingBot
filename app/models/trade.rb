@@ -56,7 +56,7 @@ class Trade < ApplicationRecord
     poloniex_post_url = 'https://poloniex.com/tradingApi'
 
     nonce = Time.now().to_i
-    wallet_command_poloniex = "command=returnBalances&nonce=#{nonce}"
+    wallet_command_poloniex = "command=returnAvailableAccountBalances&nonce=#{nonce}"
     wallet_command_liqui= "nonce=#{nonce}&method=getInfo"
 
     liqui_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], wallet_command_liqui)
@@ -78,6 +78,7 @@ class Trade < ApplicationRecord
     poloniex_wallet_response = HTTParty.post(poloniex_post_url, body: wallet_command_poloniex, headers: poloniex_headers)
 
     puts liqui_wallet_response, poloniex_wallet_response
+    
   end
 
   def self.write_to_table(data)
