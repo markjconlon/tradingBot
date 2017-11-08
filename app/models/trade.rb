@@ -5,6 +5,8 @@ class Trade < ApplicationRecord
     # poloniex_response = HTTParty.get('https://poloniex.com/public?command=returnOrderBook&currencyPair=BTC_ETH&depth=10')
 
     # calls to the apis are made on in the controller and passed down
+
+    return if liqui_response["success"] == 0
     liqui_sell = liqui_response["eth_btc"]["asks"][0]
     liqui_buy = liqui_response["eth_btc"]["bids"][0]
     poloniex_sell = [(poloniex_response["asks"][0][0]).to_f, poloniex_response["asks"][0][1]]
