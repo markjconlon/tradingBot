@@ -1,5 +1,6 @@
 class Trade < ApplicationRecord
 
+  has_one :wallet
   @our_volume_limit = 0.01 #ETH
   @margin = -0.05
   @wait_time_before_cancelling = 600 #seconds
@@ -52,13 +53,52 @@ class Trade < ApplicationRecord
     end
   end
 
+  def self.check_wallets_after_trade
+    liqui_post_url = 'https://api.liqui.io/tapi'
+    poloniex_post_url = 'https://poloniex.com/tradingApi'
+
+    nonce = Time.now().to_i
+    wallet_command_poloniex = "command=returnAvailableAccountBalances&nonce=#{nonce}"
+    wallet_command_liqui= "nonce=#{nonce}&method=getInfo"
+
+    liqui_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], wallet_command_liqui)
+    poloniex_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], wallet_command_poloniex)
+
+    liqui_headers = {
+    "key" => ENV['LIQUI_KEY'],
+    "sign" => liqui_signature,
+    'Content-Type':  'application/x-www-form-urlencoded'
+    }
+
+    poloniex_headers = {
+    "key" => ENV['POLONIEX_KEY'],
+    "sign" => poloniex_signature,
+    'Content-Type':  'application/x-www-form-urlencoded'
+    }
+
+    liqui_wallet_response = HTTParty.post(liqui_post_url, body: wallet_command_liqui, headers: liqui_headers)
+    poloniex_wallet_response = HTTParty.post(poloniex_post_url, body: wallet_command_poloniex, headers: poloniex_headers)
+
+    liqui_eth = (liqui_wallet_response["return"]["funds"]["eth"]).to_f
+    liqui_btc = (liqui_wallet_response["return"]["funds"]["btc"]).to_f
+    poloniex_eth = (poloniex_wallet_response["exchange"]["ETH"]).to_f
+    poloniex_btc = (poloniex_wallet_response["exchange"]["BTC"]).to_f
+
+    return ([liqui_eth, liqui_btc, poloniex_eth, poloniex_btc])
+  end
+
   def self.log_trade(data)
     start_time = Time.now().to_i
 
     if orders_fufilled
       Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
+
+      wallets = check_wallets_after_trade
+
+      Wallet.create(trade_id: Trade.last.id, liqui_eth: wallets[0], liqui_btc: wallets[1], poloniex_eth: wallets[2], poloniex_btc: wallets[3])
       return true
     else
+
       # halts trading for now, eventually will cancel one or both and handle trade + wallet accordingly.
       return false
 
@@ -102,6 +142,7 @@ class Trade < ApplicationRecord
         # poloniex_sell_wallet_response = HTTParty.post(poloniex_post_url, body: sell_order_command_poloniex, headers: poloniex_headers)
         # liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
         puts "SELL ON POLONIEX AND BUY ON LIQUI"
+
         log_trade(data)
 
       elsif data[0] == :sell_on_liqui && data[2] == :buy_on_poloniex
@@ -128,6 +169,7 @@ class Trade < ApplicationRecord
         # liqui_sell_wallet_response = HTTParty.post(liqui_post_url, body: sell_order_command_liqui, headers: liqui_headers)
         # poloniex_buy_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
         puts "SELL ON LIQUI AND BUY ON POLONIEX"
+
         log_trade(data)
 
       end

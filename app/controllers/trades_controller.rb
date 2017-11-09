@@ -18,6 +18,8 @@ class TradesController < ApplicationController
       puts "/////////"
       x = Trade.check_trades(liqui_response, poloniex_response)
 
+      puts liqui_response
+      
       if !x
         break
       end
