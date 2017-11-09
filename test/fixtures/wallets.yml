@@ -1,0 +1,15 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  trade: one
+  liqui_btc: 1.5
+  liqui_eth: 1.5
+  poloniex_btc: 1.5
+  poloniex_eth: 1.5
+
+two:
+  trade: two
+  liqui_btc: 1.5
+  liqui_eth: 1.5
+  poloniex_btc: 1.5
+  poloniex_eth: 1.5

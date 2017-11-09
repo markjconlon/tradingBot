@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170926194517) do
+ActiveRecord::Schema.define(version: 20171109220809) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -26,4 +26,16 @@ ActiveRecord::Schema.define(version: 20170926194517) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "wallets", force: :cascade do |t|
+    t.bigint "trade_id"
+    t.float "liqui_btc"
+    t.float "liqui_eth"
+    t.float "poloniex_btc"
+    t.float "poloniex_eth"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["trade_id"], name: "index_wallets_on_trade_id"
+  end
+
+  add_foreign_key "wallets", "trades"
 end
