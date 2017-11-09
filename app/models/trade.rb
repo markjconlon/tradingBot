@@ -1,4 +1,6 @@
 class Trade < ApplicationRecord
+  @our_volume_limit = 0.01 #ETH
+  @margin = -0.05
   def self.check_trades(liqui_response, poloniex_response)
     # liqui_response = HTTParty.get('https://api.liqui.io/api/3/depth/eth_btc?limit=10')
     # quadrigacx_response = HTTParty.get('https://api.quadrigacx.com/public/orders?book=eth_btc&group=1')
@@ -33,10 +35,9 @@ class Trade < ApplicationRecord
   def self.profitable_trade(trades)
     # determines which exchange has the highest sell and lowest buy
     # then we check if the difference is in our margin
-    margin = 0.00#2
     high_sell = find_highest_sell(trades[:sells])
     low_buy = find_lowest_buy(trades[:buys])
-    if high_sell[1][0] >= (low_buy[1][0] * ((1 + 0.0025)/ ( 1 - 0.0026)) + margin)
+    if high_sell[1][0] >= (low_buy[1][0] * ((1 + 0.0025)/ ( 1 - 0.0026)) + @margin)
       # if there is an opportunity we check to see which one has the lowest volume
       # this becomes the highest amount we can buy/sell
       find_highest_amount([high_sell, low_buy])
@@ -54,7 +55,6 @@ class Trade < ApplicationRecord
 
   def self.make_trade(data, liqui_wallet, poloniex_wallet)
     maximum_volume_available = data[4]
-    our_volume_limit = 0.01 #ETH
     sell_rate = data[1]
     buy_rate = data[3]
 
@@ -63,12 +63,12 @@ class Trade < ApplicationRecord
 
     nonce = Time.now().to_i
 
-    if maximum_volume_available > our_volume_limit
+    if maximum_volume_available > @our_volume_limit
 
       if data[0] == :sell_on_poloniex && data[2] == :buy_on_liqui
 
-        sell_order_command_poloniex = "command=sell&currencyPair=BTC_ETH&rate=#{sell_rate}&amount=#{our_volume_limit}&nonce=#{nonce}"
-        buy_order_command_liqui= "nonce=#{nonce}&method=trade&pair=eth_btc&type=buy&rate=#{buy_rate}&amount=#{our_volume_limit}"
+        sell_order_command_poloniex = "command=sell&currencyPair=BTC_ETH&rate=#{sell_rate}&amount=#{@our_volume_limit}&nonce=#{nonce}"
+        buy_order_command_liqui= "nonce=#{nonce}&method=trade&pair=eth_btc&type=buy&rate=#{buy_rate}&amount=#{@our_volume_limit}"
 
         poloniex_sell_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], sell_order_command_poloniex)
         liqui_buy_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], buy_order_command_liqui)
@@ -85,6 +85,7 @@ class Trade < ApplicationRecord
           'Content-Type':  'application/x-www-form-urlencoded'
         }
 
+        # COMMENT OR UNCOMMENT IF YOU WANT IT TO ACTUALLY MAKE TRADES
         # poloniex_sell_wallet_response = HTTParty.post(poloniex_post_url, body: sell_order_command_poloniex, headers: poloniex_headers)
         # liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
 
@@ -92,8 +93,8 @@ class Trade < ApplicationRecord
 
       elsif data[0] == :sell_on_liqui && data[2] == :buy_on_poloniex
 
-        sell_order_command_liqui= "nonce=#{nonce}&method=trade&pair=eth_btc&type=sell&rate=#{sell_rate}&amount=#{our_volume_limit}"
-        buy_order_command_poloniex = "command=buy&currencyPair=BTC_ETH&rate=#{buy_rate}&amount=#{our_volume_limit}&nonce=#{nonce}"
+        sell_order_command_liqui= "nonce=#{nonce}&method=trade&pair=eth_btc&type=sell&rate=#{sell_rate}&amount=#{@our_volume_limit}"
+        buy_order_command_poloniex = "command=buy&currencyPair=BTC_ETH&rate=#{buy_rate}&amount=#{@our_volume_limit}&nonce=#{nonce}"
 
         liqui_sell_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], sell_order_command_liqui)
         poloniex_buy_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], buy_order_command_poloniex)
@@ -110,6 +111,7 @@ class Trade < ApplicationRecord
           'Content-Type':  'application/x-www-form-urlencoded'
         }
 
+        # COMMENT OR UNCOMMENT IF YOU WANT IT TO ACTUALLY MAKE TRADES
         # liqui_sell_wallet_response = HTTParty.post(liqui_post_url, body: sell_order_command_liqui, headers: liqui_headers)
         # poloniex_buy_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
 
