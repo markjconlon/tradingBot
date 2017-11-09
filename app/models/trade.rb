@@ -55,7 +55,13 @@ class Trade < ApplicationRecord
   def self.log_trade
     start_time = Time.now().to_i
 
-    Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
+    if orders_fufilled
+      Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
+      return true
+    elsif
+
+    end
+
   end
 
   def self.make_trade(data, liqui_wallet, poloniex_wallet)
@@ -93,10 +99,8 @@ class Trade < ApplicationRecord
         # COMMENT OR UNCOMMENT IF YOU WANT IT TO ACTUALLY MAKE TRADES
         # poloniex_sell_wallet_response = HTTParty.post(poloniex_post_url, body: sell_order_command_poloniex, headers: poloniex_headers)
         # liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
-
-
         puts "SELL ON POLONIEX AND BUY ON LIQUI"
-        Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
+        log_trade(data)
 
       elsif data[0] == :sell_on_liqui && data[2] == :buy_on_poloniex
 
@@ -121,16 +125,16 @@ class Trade < ApplicationRecord
         # COMMENT OR UNCOMMENT IF YOU WANT IT TO ACTUALLY MAKE TRADES
         # liqui_sell_wallet_response = HTTParty.post(liqui_post_url, body: sell_order_command_liqui, headers: liqui_headers)
         # poloniex_buy_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
-
         puts "SELL ON LIQUI AND BUY ON POLONIEX"
-        Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
+        log_trade(data)
+
       end
 
     end
 
   end
 
-  def self.check_open_orders(data, liqui_wallet, poloniex_wallet)
+  def self.orders_fufilled
     liqui_post_url = 'https://api.liqui.io/tapi'
     poloniex_post_url = 'https://poloniex.com/tradingApi'
 
@@ -154,13 +158,14 @@ class Trade < ApplicationRecord
     'Content-Type':  'application/x-www-form-urlencoded'
     }
 
-    poloniex_wallet_response = HTTParty.post(poloniex_post_url, body: open_order_command_poloniex, headers: poloniex_headers)
-    liqui_wallet_response = HTTParty.post(liqui_post_url, body: open_order_command_liqui, headers: liqui_headers)
+    poloniex_open_trades_response = HTTParty.post(poloniex_post_url, body: open_order_command_poloniex, headers: poloniex_headers)
+    liqui_open_trades_response = HTTParty.post(liqui_post_url, body: open_order_command_liqui, headers: liqui_headers)
 
-    if poloniex_wallet_response.empty? && liqui_wallet_response["return"].empty?
-      make_trade(data, liqui_wallet, poloniex_wallet)
+    if poloniex_open_trades_response.empty? && liqui_open_trades_response["return"].empty?
+      return true
     else
       puts "waiting for orders to fill"
+      return false
     end
   end
 
@@ -196,7 +201,7 @@ class Trade < ApplicationRecord
     # simple solution for now this could check which one is selling ether first thereby allowing us to
     # make a trade if it is the the right direction
     if liqui_ether >= @our_volume_limit && poloniex_ether >= @our_volume_limit
-      check_open_orders(data, liqui_wallet_response, poloniex_wallet_response)
+      make_trade(data, liqui_wallet_response, poloniex_wallet_response)
 
     else
       puts "WALLETS NEED REBALANCING"
