@@ -2,6 +2,7 @@ class Trade < ApplicationRecord
 
   @our_volume_limit = 0.01 #ETH
   @margin = -0.05
+  @wait_time_before_cancelling = 600 #seconds
 
   def self.check_trades(liqui_response, poloniex_response)
     # liqui_response = HTTParty.get('https://api.liqui.io/api/3/depth/eth_btc?limit=10')
@@ -49,9 +50,9 @@ class Trade < ApplicationRecord
   def self.find_highest_amount(data)
     # data is in a format of [sellexchange: [rate, eth_amount], buyexchang: [rate, eth_amount]]
     if (data[0][1][1] < data[1][1][1])
-      write_to_table([ data[0][0], data[0][1][0], data[1][0], data[1][1][0], data[0][1][1], Time.now ])
+      check_wallets([ data[0][0], data[0][1][0], data[1][0], data[1][1][0], data[0][1][1], Time.now ])
     else
-      write_to_table( [ data[0][0], data[0][1][0], data[1][0], data[1][1][0], data[1][1][1], Time.now] )
+      check_wallets( [ data[0][0], data[0][1][0], data[1][0], data[1][1][0], data[1][1][1], Time.now] )
     end
   end
 
@@ -196,10 +197,5 @@ class Trade < ApplicationRecord
       puts "WALLETS NEED REBALANCING"
     end
 
-  end
-
-  def self.write_to_table(data)
-    Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
-    check_wallets(data)
   end
 end
