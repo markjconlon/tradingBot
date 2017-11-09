@@ -5,12 +5,8 @@ class Trade < ApplicationRecord
   @wait_time_before_cancelling = 600 #seconds
 
   def self.check_trades(liqui_response, poloniex_response)
-    # liqui_response = HTTParty.get('https://api.liqui.io/api/3/depth/eth_btc?limit=10')
-    # quadrigacx_response = HTTParty.get('https://api.quadrigacx.com/public/orders?book=eth_btc&group=1')
-    # poloniex_response = HTTParty.get('https://poloniex.com/public?command=returnOrderBook&currencyPair=BTC_ETH&depth=10')
 
     # calls to the apis are made on in the controller and passed down
-
     return if liqui_response["success"] == 0
     liqui_sell = liqui_response["eth_btc"]["asks"][0]
     liqui_buy = liqui_response["eth_btc"]["bids"][0]
@@ -56,6 +52,12 @@ class Trade < ApplicationRecord
     end
   end
 
+  def self.log_trade
+    start_time = Time.now().to_i
+
+    Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
+  end
+
   def self.make_trade(data, liqui_wallet, poloniex_wallet)
     maximum_volume_available = data[4]
     sell_rate = data[1]
@@ -92,7 +94,9 @@ class Trade < ApplicationRecord
         # poloniex_sell_wallet_response = HTTParty.post(poloniex_post_url, body: sell_order_command_poloniex, headers: poloniex_headers)
         # liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
 
+
         puts "SELL ON POLONIEX AND BUY ON LIQUI"
+        Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
 
       elsif data[0] == :sell_on_liqui && data[2] == :buy_on_poloniex
 
@@ -119,6 +123,7 @@ class Trade < ApplicationRecord
         # poloniex_buy_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
 
         puts "SELL ON LIQUI AND BUY ON POLONIEX"
+        Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
       end
 
     end
@@ -195,6 +200,7 @@ class Trade < ApplicationRecord
 
     else
       puts "WALLETS NEED REBALANCING"
+      return false
     end
 
   end
