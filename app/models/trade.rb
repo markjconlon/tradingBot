@@ -52,13 +52,15 @@ class Trade < ApplicationRecord
     end
   end
 
-  def self.log_trade
+  def self.log_trade(data)
     start_time = Time.now().to_i
 
     if orders_fufilled
       Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
       return true
-    elsif
+    else
+      # halts trading for now, eventually will cancel one or both and handle trade + wallet accordingly.
+      return false
 
     end
 
