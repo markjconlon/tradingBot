@@ -1,6 +1,8 @@
 class Trade < ApplicationRecord
+
   @our_volume_limit = 0.01 #ETH
   @margin = -0.05
+
   def self.check_trades(liqui_response, poloniex_response)
     # liqui_response = HTTParty.get('https://api.liqui.io/api/3/depth/eth_btc?limit=10')
     # quadrigacx_response = HTTParty.get('https://api.quadrigacx.com/public/orders?book=eth_btc&group=1')
@@ -182,9 +184,18 @@ class Trade < ApplicationRecord
     liqui_wallet_response = HTTParty.post(liqui_post_url, body: wallet_command_liqui, headers: liqui_headers)
     poloniex_wallet_response = HTTParty.post(poloniex_post_url, body: wallet_command_poloniex, headers: poloniex_headers)
 
-    puts liqui_wallet_response, poloniex_wallet_response
+    liqui_ether = (liqui_wallet_response["return"]["funds"]["eth"]).to_f
+    poloniex_ether = (poloniex_wallet_response["exchange"]["ETH"]).to_f
 
-    check_open_orders(data, liqui_wallet_response, poloniex_wallet_response)
+    # simple solution for now this could check which one is selling ether first thereby allowing us to
+    # make a trade if it is the the right direction
+    if liqui_ether >= @our_volume_limit && poloniex_ether >= @our_volume_limit
+      check_open_orders(data, liqui_wallet_response, poloniex_wallet_response)
+
+    else
+      puts "WALLETS NEED REBALANCING"
+    end
+
   end
 
   def self.write_to_table(data)
