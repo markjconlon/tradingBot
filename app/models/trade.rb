@@ -57,7 +57,7 @@ class Trade < ApplicationRecord
     liqui_post_url = 'https://api.liqui.io/tapi'
     poloniex_post_url = 'https://poloniex.com/tradingApi'
 
-    nonce = Time.now().to_i
+    nonce = Time.now().to_i + 1 #added + 1 incase it takes less than a second to get here
     wallet_command_poloniex = "command=returnAvailableAccountBalances&nonce=#{nonce}"
     wallet_command_liqui= "nonce=#{nonce}&method=getInfo"
 
