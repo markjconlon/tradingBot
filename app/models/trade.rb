@@ -2,7 +2,7 @@ class Trade < ApplicationRecord
 
   has_one :wallet
   @our_volume_limit = 0.01 #ETH
-  @margin = -0.05
+  @margin = 0.0005
   @wait_time_before_cancelling = 600 #seconds
 
   def self.check_trades(liqui_response, poloniex_response)
@@ -37,6 +37,7 @@ class Trade < ApplicationRecord
     # then we check if the difference is in our margin
     high_sell = find_highest_sell(trades[:sells])
     low_buy = find_lowest_buy(trades[:buys])
+    puts (high_sell[1][0] - (low_buy[1][0] * ((1 + 0.0025)/ ( 1 - 0.0026))))
     if high_sell[1][0] >= (low_buy[1][0] * ((1 + 0.0025)/ ( 1 - 0.0026)) + @margin)
       # if there is an opportunity we check to see which one has the lowest volume
       # this becomes the highest amount we can buy/sell
@@ -139,8 +140,8 @@ class Trade < ApplicationRecord
         }
 
         # COMMENT OR UNCOMMENT IF YOU WANT IT TO ACTUALLY MAKE TRADES
-        # poloniex_sell_wallet_response = HTTParty.post(poloniex_post_url, body: sell_order_command_poloniex, headers: poloniex_headers)
-        # liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
+        poloniex_sell_wallet_response = HTTParty.post(poloniex_post_url, body: sell_order_command_poloniex, headers: poloniex_headers)
+        liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
         puts "SELL ON POLONIEX AND BUY ON LIQUI"
 
         log_trade(data)
@@ -166,8 +167,8 @@ class Trade < ApplicationRecord
         }
 
         # COMMENT OR UNCOMMENT IF YOU WANT IT TO ACTUALLY MAKE TRADES
-        # liqui_sell_wallet_response = HTTParty.post(liqui_post_url, body: sell_order_command_liqui, headers: liqui_headers)
-        # poloniex_buy_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
+        liqui_sell_wallet_response = HTTParty.post(liqui_post_url, body: sell_order_command_liqui, headers: liqui_headers)
+        poloniex_buy_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
         puts "SELL ON LIQUI AND BUY ON POLONIEX"
 
         log_trade(data)
