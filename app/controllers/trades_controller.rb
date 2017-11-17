@@ -11,7 +11,7 @@ class TradesController < ApplicationController
     now = Time.now().to_i
     count = Trade.all.count
     time_to_run = 1800
-    until now + time_to_run < Time.now().to_i
+    until Trade.all.count > count
       liqui_response = HTTParty.get('https://api.liqui.io/api/3/depth/eth_btc?limit=10')
       poloniex_response = HTTParty.get('https://poloniex.com/public?command=returnOrderBook&currencyPair=BTC_ETH&depth=10')
       # quadrigacx_response = HTTParty.get('https://api.quadrigacx.com/public/orders?book=eth_btc&group=1')

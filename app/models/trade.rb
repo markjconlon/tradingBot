@@ -2,8 +2,7 @@ class Trade < ApplicationRecord
 
   has_one :wallet
   @our_volume_limit = 0.01 #ETH
-  @margin = 0.0005
-  @wait_time_before_cancelling = 600 #seconds
+  @margin = 0.00021
 
   def self.check_trades(liqui_response, poloniex_response)
 
@@ -99,7 +98,11 @@ class Trade < ApplicationRecord
       Wallet.create(trade_id: Trade.last.id, liqui_eth: wallets[0], liqui_btc: wallets[1], poloniex_eth: wallets[2], poloniex_btc: wallets[3])
       return true
     else
+      Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
 
+      wallets = check_wallets_after_trade
+
+      Wallet.create(trade_id: Trade.last.id, liqui_eth: wallets[0], liqui_btc: wallets[1], poloniex_eth: wallets[2], poloniex_btc: wallets[3])
       # halts trading for now, eventually will cancel one or both and handle trade + wallet accordingly.
       return false
 
