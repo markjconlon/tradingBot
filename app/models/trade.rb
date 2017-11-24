@@ -2,7 +2,7 @@ class Trade < ApplicationRecord
 
   has_one :wallet
   @our_volume_limit = 0.01 #ETH
-  @margin = 0.00021
+  @margin = 0.0001
 
   def self.check_trades(liqui_response, poloniex_response)
 
@@ -57,7 +57,7 @@ class Trade < ApplicationRecord
     liqui_post_url = 'https://api.liqui.io/tapi'
     poloniex_post_url = 'https://poloniex.com/tradingApi'
 
-    nonce = Time.now().to_i + 1 #added + 1 incase it takes less than a second to get here
+    nonce = Time.now().to_i + 2 #added + 1 incase it takes less than a second to get here
     wallet_command_poloniex = "command=returnAvailableAccountBalances&nonce=#{nonce}"
     wallet_command_liqui= "nonce=#{nonce}&method=getInfo"
 
@@ -96,6 +96,7 @@ class Trade < ApplicationRecord
       wallets = check_wallets_after_trade
 
       Wallet.create(trade_id: Trade.last.id, liqui_eth: wallets[0], liqui_btc: wallets[1], poloniex_eth: wallets[2], poloniex_btc: wallets[3])
+      puts "orders fufilled"
       return true
     else
       Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
@@ -104,6 +105,7 @@ class Trade < ApplicationRecord
 
       Wallet.create(trade_id: Trade.last.id, liqui_eth: wallets[0], liqui_btc: wallets[1], poloniex_eth: wallets[2], poloniex_btc: wallets[3])
       # halts trading for now, eventually will cancel one or both and handle trade + wallet accordingly.
+      puts "orders not fufilled"
       return false
 
     end
@@ -118,7 +120,7 @@ class Trade < ApplicationRecord
     liqui_post_url = 'https://api.liqui.io/tapi'
     poloniex_post_url = 'https://poloniex.com/tradingApi'
 
-    nonce = Time.now().to_i
+    nonce = Time.now().to_i + 1
 
     if maximum_volume_available > @our_volume_limit
 
@@ -146,7 +148,8 @@ class Trade < ApplicationRecord
         poloniex_sell_wallet_response = HTTParty.post(poloniex_post_url, body: sell_order_command_poloniex, headers: poloniex_headers)
         liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
         puts "SELL ON POLONIEX AND BUY ON LIQUI"
-
+        puts poloniex_sell_wallet_response
+        puts liqui_buy_wallet_response
         log_trade(data)
 
       elsif data[0] == :sell_on_liqui && data[2] == :buy_on_poloniex
@@ -173,7 +176,8 @@ class Trade < ApplicationRecord
         liqui_sell_wallet_response = HTTParty.post(liqui_post_url, body: sell_order_command_liqui, headers: liqui_headers)
         poloniex_buy_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
         puts "SELL ON LIQUI AND BUY ON POLONIEX"
-
+        puts liqui_sell_wallet_response
+        puts poloniex_buy_wallet_response
         log_trade(data)
 
       end
