@@ -145,8 +145,8 @@ class Trade < ApplicationRecord
         }
 
         # COMMENT OR UNCOMMENT IF YOU WANT IT TO ACTUALLY MAKE TRADES
-        poloniex_sell_wallet_response = HTTParty.post(poloniex_post_url, body: sell_order_command_poloniex, headers: poloniex_headers)
-        liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
+        # poloniex_sell_wallet_response = HTTParty.post(poloniex_post_url, body: sell_order_command_poloniex, headers: poloniex_headers)
+        # liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
         puts "SELL ON POLONIEX AND BUY ON LIQUI"
         puts poloniex_sell_wallet_response
         puts liqui_buy_wallet_response
@@ -173,8 +173,8 @@ class Trade < ApplicationRecord
         }
 
         # COMMENT OR UNCOMMENT IF YOU WANT IT TO ACTUALLY MAKE TRADES
-        liqui_sell_wallet_response = HTTParty.post(liqui_post_url, body: sell_order_command_liqui, headers: liqui_headers)
-        poloniex_buy_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
+        # liqui_sell_wallet_response = HTTParty.post(liqui_post_url, body: sell_order_command_liqui, headers: liqui_headers)
+        # poloniex_buy_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
         puts "SELL ON LIQUI AND BUY ON POLONIEX"
         puts liqui_sell_wallet_response
         puts poloniex_buy_wallet_response
