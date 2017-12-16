@@ -91,7 +91,7 @@ class Trade < ApplicationRecord
     start_time = Time.now().to_i
 
     if orders_fufilled
-      Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
+      Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4], delta: (data[1]-data[2]) )
 
       wallets = check_wallets_after_trade
 
@@ -99,7 +99,7 @@ class Trade < ApplicationRecord
       puts "orders fufilled"
       return true
     else
-      Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4])
+      Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4], delta: delta: (data[1]-data[2]) )
 
       wallets = check_wallets_after_trade
 
