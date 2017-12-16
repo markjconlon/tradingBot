@@ -7,7 +7,7 @@ class TradesController < ApplicationController
     @trade = Trade.find_by(params[:id])
   end
 
+  CheckTradesJob.perform_later
   def check_trades
-    CheckTradesJob.perform_later
   end
 end

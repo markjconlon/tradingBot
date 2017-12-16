@@ -1,3 +1,83 @@
 // Place all the styles related to the Trades controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
+body {
+  padding: 0px 20px;
+}
+
+h5 {
+  margin-bottom: 15px;
+}
+
+.bottom-row, .top-row {
+  margin-top: 15px;
+}
+
+.table-top {
+  border: none !important;
+}
+
+.big-cycle-box {
+  padding: 10px;
+}
+
+.cycle-box {
+  float: left;
+  width: 50%;
+  height: 100px;
+  text-align: center;
+}
+
+.cycle-time {
+  float: left;
+  width: 33.33%;
+  height: 89px;
+  text-align: center;
+  padding-top: 20px;
+}
+
+.balance-box {
+  margin: 8% auto;
+  text-align: center;
+  line-height: 100px;
+  vertical-align: middle;
+}
+
+#ghost-title {
+  visibility: hidden;
+}
+
+.history-box {
+  margin-bottom: 20px;
+  text-align: center;
+  line-height: 80px;
+  vertical-align: middle;
+}
+
+.gray {
+  background-color: rgb(245,245,245);
+}
+
+.dark {
+  background-color: rgb(210,210,210);
+}
+
+.white {
+  background-color: white;
+}
+
+.big-dark-box {
+  padding: 10px;
+}
+
+.gray-balances {
+  height: 100%;
+}
+
+.balances {
+  overflow: hidden;
+}
+
+th, h6, h7, td, tr, p {
+  font-size: calc(8px + 0.5vw);
+}

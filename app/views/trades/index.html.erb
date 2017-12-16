@@ -1,3 +1,165 @@
 <h1>Trades#index</h1>
 <p>Find me in app/views/trades/index.html.erb</p>
 <%= link_to 'Check Trades', trades_check_trades_path, method: :post %>
+<div class="container-fluid">
+
+        <div class="row top-row">
+
+          <div class="col-xs-4 col-sm-4">
+            <h5>LEGEND</h5>
+            <div class="border">
+              <table class="table table-hover">
+              <tbody>
+                <tr>
+                  <td class="table-top">TRADING PAIR:</td>
+                  <td class="table-top">XBT/ETH</td>
+                </tr>
+                <tr>
+                  <td>EXCHANGE PAIR:</td>
+                  <td>LIQUI/POLONIEX</td>
+                </tr>
+                <tr>
+                  <td>CURRENCY:</td>
+                  <td>XBT</td>
+                </tr>
+                <tr>
+                  <td>COMMODITY:</td>
+                  <td>ETH</td>
+                </tr>
+                <tr>
+                  <td>PROFIT DELTA:</td>
+                  <td>0.00001</td>
+                </tr>
+                <tr>
+                  <td>COMMODITY AMOUNT:</td>
+                  <td>1 ETH</td>
+                </tr>
+              </tbody>
+            </table>
+            </div>
+          </div>
+          <div class="col-xs-4 col-sm-4">
+             <h5>CURRENT CYCLE</h5>
+             <div class="border big-cycle-box clearfix gray">
+              <div class="cycle-box">
+                <h6>PROFIT</h6>
+                <p class="text-success">0.018748 XBT</p>
+              </div>
+              <div class="cycle-box">
+                <h6>LOSS</h6>
+                <p class="text-danger">0.00000 XBT</p>
+              </div>
+              <div class="cycle-box">
+                <h6>TRADES FILLED</h6>
+                <p class="text-success">12</p>
+              </div>
+              <div class="cycle-box">
+                <h6>TRADES OPEN</h6>
+                <p class="text-danger">1</p>
+              </div>
+              <div class="cycle-time dark border">
+                <h6>START DATE</h6>
+                <p>10-09-2017</p>
+              </div>
+              <div class="cycle-time dark border">
+                <h6>START TIME</h6>
+                <p>18:47</p>
+              </div>
+              <div class="cycle-time dark border">
+                <h6>TIME ACTIVE</h6>
+                <p>01:06:37</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-xs-2 col-sm-2 balances">
+            <h5>BALANCES</h5>
+            <div class="dark big-dark-box gray-balances">
+              <h6>LIQUI</h6>
+              <div class="white balance-box"><h7>0.0187654 ETH</h7></div>
+              <div class="white balance-box"><h7>0.0187654 XBT</h7></div>
+            </div>
+          </div>
+          <div class="col-xs-2 col-sm-2 balances">
+            <h5 id="ghost-title">BALANCES</h5>
+            <div class="big-dark-box dark gray-balances">
+              <h6>POLONIEX</h6>
+              <div class="balance-box white"><h7>0.0187654 ETH</h7></div>
+              <div class="balance-box white"><h7>0.0187654 XBT</h7></div>
+            </div>
+          </div>
+
+        </div>
+
+          <div class="row bottom-row">
+
+          <div class="col-xs-10 col-sm-10">
+            <h5>TRADE POSITIONS</h5>
+            <table class="table table-striped border">
+              <thead>
+                <tr>
+                  <th>Exchange</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Date-Time</th>
+                  <th>Price (XBT)</th>
+                  <th>Volume (ETH)</th>
+                  <th>XBT Gained</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Polly</td>
+                  <td>Sell</td>
+                  <td>Open</td>
+                  <td>10-04-2017 11:16</td>
+                  <td>0.00232112</td>
+                  <td>1.0000</td>
+                  <td>0.00232112</td>
+                </tr>
+                <tr>
+                  <td>Liqui</td>
+                  <td>Buy</td>
+                  <td>Filled</td>
+                  <td>10-04-2017 11:14</td>
+                  <td>0.00232112</td>
+                  <td>1.0000</td>
+                  <td>0.00232112</td>
+                </tr>
+                <tr>
+                  <td>Molly</td>
+                  <td>Sell</td>
+                  <td>Filled</td>
+                  <td>10-04-2017 11:05</td>
+                  <td>0.00232112</td>
+                  <td>1.0000</td>
+                  <td>0.00232112</td>
+                </tr>
+                <tr>
+                  <td>Jolly</td>
+                  <td>Buy</td>
+                  <td>Filled</td>
+                  <td>10-04-2017 11:04</td>
+                  <td>0.00232112</td>
+                  <td>1.0000</td>
+                  <td>0.00232112</td>
+                </tr>
+              <tbody>
+            </table>
+          </div>
+          <div class="col-xs-2 col-sm-2">
+            <h5>HISTORY</h5>
+            <div class="dark big-dark-box">
+              <h6>TOTAL CYCLES</h6>
+              <div class="white history-box">
+                <h7>12</h7>
+              </div>
+              <h6>TOTAL PROFIT</h6>
+              <div class="white history-box">
+                <h7>18.756 XBTC</h7>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
