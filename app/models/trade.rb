@@ -1,15 +1,16 @@
 class Trade < ApplicationRecord
 
   has_one :wallet
-  @our_volume_limit = 0.01 #ETH
+  @our_volume_limit = 1 #OMG
   @margin = 0.0001
+  @worst_case_trade_amount = 10 #volume of OMG off 1 exchange - 2 * volume limit
 
   def self.check_trades(liqui_response, poloniex_response)
 
     # calls to the apis are made on in the controller and passed down
     return if liqui_response["success"] == 0
-    liqui_sell = liqui_response["eth_btc"]["asks"][0]
-    liqui_buy = liqui_response["eth_btc"]["bids"][0]
+    liqui_sell = liqui_response["omg_eth"]["asks"][0]
+    liqui_buy = liqui_response["omg_eth"]["bids"][0]
     poloniex_sell = [(poloniex_response["asks"][0][0]).to_f, poloniex_response["asks"][0][1]]
     poloniex_buy = [(poloniex_response["bids"][0][0]).to_f, poloniex_response["bids"][0][1]]
 
@@ -80,30 +81,30 @@ class Trade < ApplicationRecord
     poloniex_wallet_response = HTTParty.post(poloniex_post_url, body: wallet_command_poloniex, headers: poloniex_headers)
 
     liqui_eth = (liqui_wallet_response["return"]["funds"]["eth"]).to_f
-    liqui_btc = (liqui_wallet_response["return"]["funds"]["btc"]).to_f
+    liqui_omg = (liqui_wallet_response["return"]["funds"]["omg"]).to_f
     poloniex_eth = (poloniex_wallet_response["exchange"]["ETH"]).to_f
-    poloniex_btc = (poloniex_wallet_response["exchange"]["BTC"]).to_f
+    poloniex_omg = (poloniex_wallet_response["exchange"]["OMG"]).to_f
 
-    return ([liqui_eth, liqui_btc, poloniex_eth, poloniex_btc])
+    return ([liqui_eth, liqui_omg, poloniex_eth, poloniex_omg])
   end
 
   def self.log_trade(data)
     start_time = Time.now().to_i
 
     if orders_fufilled
-      Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4], delta: (data[1]-data[2]) )
+      Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_omg: data[4], delta: (data[1]-data[2]) )
 
       wallets = check_wallets_after_trade
 
-      Wallet.create(trade_id: Trade.last.id, liqui_eth: wallets[0], liqui_btc: wallets[1], poloniex_eth: wallets[2], poloniex_btc: wallets[3])
+      Wallet.create(trade_id: Trade.last.id, liqui_eth: wallets[0], liqui_omg: wallets[1], poloniex_eth: wallets[2], poloniex_omg: wallets[3])
       puts "orders fufilled"
       return true
     else
-      Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_eth: data[4], delta: delta: (data[1]-data[2]) )
+      Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_omg: data[4], delta: (data[1]-data[2]) )
 
       wallets = check_wallets_after_trade
 
-      Wallet.create(trade_id: Trade.last.id, liqui_eth: wallets[0], liqui_btc: wallets[1], poloniex_eth: wallets[2], poloniex_btc: wallets[3])
+      Wallet.create(trade_id: Trade.last.id, liqui_eth: wallets[0], liqui_omg: wallets[1], poloniex_eth: wallets[2], poloniex_omg: wallets[3])
       # halts trading for now, eventually will cancel one or both and handle trade + wallet accordingly.
       puts "orders not fufilled"
       return false
@@ -126,8 +127,8 @@ class Trade < ApplicationRecord
 
       if data[0] == :sell_on_poloniex && data[2] == :buy_on_liqui
 
-        sell_order_command_poloniex = "command=sell&currencyPair=BTC_ETH&rate=#{sell_rate}&amount=#{@our_volume_limit}&nonce=#{nonce}"
-        buy_order_command_liqui= "nonce=#{nonce}&method=trade&pair=eth_btc&type=buy&rate=#{buy_rate}&amount=#{@our_volume_limit}"
+        sell_order_command_poloniex = "command=sell&currencyPair=ETH_OMG&rate=#{sell_rate}&amount=#{@our_volume_limit}&nonce=#{nonce}"
+        buy_order_command_liqui= "nonce=#{nonce}&method=trade&pair=omg_eth&type=buy&rate=#{buy_rate}&amount=#{@our_volume_limit}"
 
         poloniex_sell_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], sell_order_command_poloniex)
         liqui_buy_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], buy_order_command_liqui)
@@ -154,8 +155,8 @@ class Trade < ApplicationRecord
 
       elsif data[0] == :sell_on_liqui && data[2] == :buy_on_poloniex
 
-        sell_order_command_liqui= "nonce=#{nonce}&method=trade&pair=eth_btc&type=sell&rate=#{sell_rate}&amount=#{@our_volume_limit}"
-        buy_order_command_poloniex = "command=buy&currencyPair=BTC_ETH&rate=#{buy_rate}&amount=#{@our_volume_limit}&nonce=#{nonce}"
+        sell_order_command_liqui= "nonce=#{nonce}&method=trade&pair=omg_eth&type=sell&rate=#{sell_rate}&amount=#{@our_volume_limit}"
+        buy_order_command_poloniex = "command=buy&currencyPair=ETH_OMG&rate=#{buy_rate}&amount=#{@our_volume_limit}&nonce=#{nonce}"
 
         liqui_sell_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], sell_order_command_liqui)
         poloniex_buy_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], buy_order_command_poloniex)
@@ -193,7 +194,7 @@ class Trade < ApplicationRecord
     nonce = Time.now().to_i
 
     open_order_command_liqui= "nonce=#{nonce}&method=activeOrders"
-    open_order_command_poloniex = "command=returnOpenOrders&currencyPair=BTC_ETH&nonce=#{nonce}"
+    open_order_command_poloniex = "command=returnOpenOrders&currencyPair=ETH_OMG&nonce=#{nonce}"
 
     poloniex_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['POLONIEX_SECRET'], open_order_command_poloniex)
     liqui_signature = OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha512"), ENV['LIQUI_SECRET'], open_order_command_liqui)
@@ -247,12 +248,12 @@ class Trade < ApplicationRecord
     liqui_wallet_response = HTTParty.post(liqui_post_url, body: wallet_command_liqui, headers: liqui_headers)
     poloniex_wallet_response = HTTParty.post(poloniex_post_url, body: wallet_command_poloniex, headers: poloniex_headers)
 
-    liqui_ether = (liqui_wallet_response["return"]["funds"]["eth"]).to_f
-    poloniex_ether = (poloniex_wallet_response["exchange"]["ETH"]).to_f
+    liqui_omg = (liqui_wallet_response["return"]["funds"]["omg"]).to_f
+    poloniex_omg = (poloniex_wallet_response["exchange"]["OMG"]).to_f
 
     # simple solution for now this could check which one is selling ether first thereby allowing us to
     # make a trade if it is the the right direction
-    if liqui_ether >= @our_volume_limit && poloniex_ether >= @our_volume_limit
+    if liqui_omg >= @our_volume_limit && poloniex_omg >= @our_volume_limit
       make_trade(data, liqui_wallet_response, poloniex_wallet_response)
 
     else
