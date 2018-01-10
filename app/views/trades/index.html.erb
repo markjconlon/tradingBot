@@ -104,46 +104,22 @@
                   <th>Date-Time</th>
                   <th>Price (ETH)</th>
                   <th>Volume (OMG)</th>
-                  <th>ETH Gained</th>
+                  <th>Delta</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Polly</td>
-                  <td>Sell</td>
-                  <td>Open</td>
-                  <td>10-04-2017 11:16</td>
-                  <td>0.00232112</td>
-                  <td>1.0000</td>
-                  <td>0.00232112</td>
-                </tr>
-                <tr>
-                  <td>Liqui</td>
-                  <td>Buy</td>
-                  <td>Filled</td>
-                  <td>10-04-2017 11:14</td>
-                  <td>0.00232112</td>
-                  <td>1.0000</td>
-                  <td>0.00232112</td>
-                </tr>
-                <tr>
-                  <td>Molly</td>
-                  <td>Sell</td>
-                  <td>Filled</td>
-                  <td>10-04-2017 11:05</td>
-                  <td>0.00232112</td>
-                  <td>1.0000</td>
-                  <td>0.00232112</td>
-                </tr>
-                <tr>
-                  <td>Jolly</td>
-                  <td>Buy</td>
-                  <td>Filled</td>
-                  <td>10-04-2017 11:04</td>
-                  <td>0.00232112</td>
-                  <td>1.0000</td>
-                  <td>0.00232112</td>
-                </tr>
+                <% if @trades.length != 0 %>
+                  <% @trades.each do |trade| %>
+                  <tr>
+                    <td><%= trade.sell_exchange %></td>
+                    <td><%= trade.sell_exchange_rate %></td>
+                    <td><%= trade.buy_exchange %></td>
+                    <td><%= trade.buy_exchange_rate %></td>
+                    <td><%= trade.volume_in_omg %></td>
+                    <td><%= trade.delta %></td>
+                  </tr>
+                  <% end %>
+                <% end %>
               <tbody>
             </table>
           </div>
