@@ -29,11 +29,11 @@
                 </tr>
                 <tr>
                   <td>PROFIT DELTA:</td>
-                  <td>0.0001</td>
+                  <td>0.0001 OMG/ETH</td>
                 </tr>
                 <tr>
                   <td>COMMODITY AMOUNT:</td>
-                  <td>0.5OMG</td>
+                  <td>0.5 OMG</td>
                 </tr>
               </tbody>
             </table>
@@ -60,15 +60,15 @@
               </div>
               <div class="cycle-time dark border">
                 <h6>START DATE</h6>
-                <p>10-09-2017</p>
+                <p><%= "#{@trades.first.created_at.day}/#{@trades.first.created_at.month}/#{@trades.first.created_at.year}"%></p>
               </div>
               <div class="cycle-time dark border">
                 <h6>START TIME</h6>
-                <p>18:47</p>
+                <p><%= "#{@trades.first.created_at.to_s.split(" ")[1]}"%></p>
               </div>
               <div class="cycle-time dark border">
-                <h6>TIME ACTIVE</h6>
-                <p>01:06:37</p>
+                <h6>TIME ACTIVE (Mins)</h6>
+                <p><%= "#{(Time.now.to_i - @trades.first.created_at.to_i)/60}"%></p>
               </div>
             </div>
           </div>
