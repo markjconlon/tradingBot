@@ -1,8 +1,8 @@
 class Trade < ApplicationRecord
 
   has_one :wallet
-  @our_volume_limit = 1 #OMG to discuss possibly make this a min limit and trade up to a max amount
-  @margin = 0.0001
+  @our_volume_limit = 0.5 #OMG to discuss possibly make this a min limit and trade up to a max amount
+  @margin = -0.005
   @worst_case_trade_amount = 10 #volume of OMG off 1 exchange - 2 * volume limit
 
   def self.check_trades(liqui_response, poloniex_response)
