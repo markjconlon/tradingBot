@@ -47,8 +47,8 @@
                 <p class="text-success">Add column to SQL for ~ETH Gain</p>
               </div>
               <div class="cycle-box">
-                <h6>LOSS</h6>
-                <p class="text-danger">0.00000 ETH</p>
+                <h6>LOSS OMG</h6>
+                <p class="text-danger">OMG</p>
               </div>
               <div class="cycle-box">
                 <h6>TRADES FILLED</h6>
@@ -99,7 +99,7 @@
               <thead>
                 <tr>
                   <th>Sell Exchange</th>
-                  <th>Sell Rate/th>
+                  <th>Sell Rate</th>
                   <th>Buy Exchange</th>
                   <th>Rate (ETH)</th>
                   <th>Date-Time</th>
@@ -119,7 +119,7 @@
                     <td><%= trade.created_at %></td>
                     <td><%= trade.volume_in_omg %></td>
                     <td><%= trade.delta %></td>
-                    <td><%= trade.delta * trade.volume_in_omg %></td>
+                    <td><%= trade.eth_gain %></td>
                   </tr>
                   <% end %>
                 <% end %>

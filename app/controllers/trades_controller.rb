@@ -1,6 +1,7 @@
 class TradesController < ApplicationController
   def index
     @trades = Trade.all
+    @wallet_omg = 1
   end
 
   def show
