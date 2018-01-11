@@ -149,8 +149,8 @@ class Trade < ApplicationRecord
         # poloniex_sell_wallet_response = HTTParty.post(poloniex_post_url, body: sell_order_command_poloniex, headers: poloniex_headers)
         # liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
         puts "SELL ON POLONIEX AND BUY ON LIQUI"
-        puts poloniex_sell_wallet_response
-        puts liqui_buy_wallet_response
+        # puts poloniex_sell_wallet_response
+        # puts liqui_buy_wallet_response
         log_trade(data)
 
       elsif data[0] == :sell_on_liqui && data[2] == :buy_on_poloniex
@@ -177,8 +177,8 @@ class Trade < ApplicationRecord
         # liqui_sell_wallet_response = HTTParty.post(liqui_post_url, body: sell_order_command_liqui, headers: liqui_headers)
         # poloniex_buy_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
         puts "SELL ON LIQUI AND BUY ON POLONIEX"
-        puts liqui_sell_wallet_response
-        puts poloniex_buy_wallet_response
+        # puts liqui_sell_wallet_response
+        # puts poloniex_buy_wallet_response
         log_trade(data)
 
       end
@@ -213,7 +213,7 @@ class Trade < ApplicationRecord
 
     poloniex_open_trades_response = HTTParty.post(poloniex_post_url, body: open_order_command_poloniex, headers: poloniex_headers)
     liqui_open_trades_response = HTTParty.post(liqui_post_url, body: open_order_command_liqui, headers: liqui_headers)
-
+    byebug
     if poloniex_open_trades_response.empty? && liqui_open_trades_response["return"].empty?
       return true
     else
@@ -225,6 +225,7 @@ class Trade < ApplicationRecord
   def self.check_wallets(data)
     liqui_post_url = 'https://api.liqui.io/tapi'
     poloniex_post_url = 'https://poloniex.com/tradingApi'
+
 
     nonce = Time.now().to_i
     wallet_command_poloniex = "command=returnAvailableAccountBalances&nonce=#{nonce}"
@@ -246,7 +247,14 @@ class Trade < ApplicationRecord
     }
 
     liqui_wallet_response = HTTParty.post(liqui_post_url, body: wallet_command_liqui, headers: liqui_headers)
-    poloniex_wallet_response = HTTParty.post(poloniex_post_url, body: wallet_command_poloniex, headers: poloniex_headers)
+    retryCount = 0
+    begin
+      poloniex_wallet_response = HTTParty.post(poloniex_post_url, body: wallet_command_poloniex, headers: poloniex_headers)
+    rescue Errno::ETIMEDOUT, Net::OpenTimeout, Errno::ECONNRESET, OpenSSL::SSL::SSLError
+      retryCount += 1
+      puts "@@@@@ #{retryCount} @@@@@@@@@"
+      retry
+    end
 
     liqui_omg = (liqui_wallet_response["return"]["funds"]["omg"]).to_f
     poloniex_omg = (poloniex_wallet_response["exchange"]["OMG"]).to_f
