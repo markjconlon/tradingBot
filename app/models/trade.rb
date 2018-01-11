@@ -3,7 +3,7 @@ class Trade < ApplicationRecord
   has_one :wallet
   @our_volume_limit = 0.5 #OMG to discuss possibly make this a min limit and trade up to a max amount
   @margin = -0.005
-  @worst_case_trade_amount = 10 #volume of OMG off 1 exchange - 2 * volume limit
+  @worst_case_trade_amount = 96 #volume of OMG on one exchange after perfect REBALANCING so 1/2 the volume of OMG
 
   def self.check_trades(liqui_response, poloniex_response)
 
@@ -37,8 +37,8 @@ class Trade < ApplicationRecord
     # then we check if the difference is in our margin
     high_sell = find_highest_sell(trades[:sells])
     low_buy = find_lowest_buy(trades[:buys])
-    puts (high_sell[1][0] - (low_buy[1][0] * ((1 + 0.0025)/ ( 1 - 0.0026))))
-    if high_sell[1][0] >= (low_buy[1][0] * ((1 + 0.0025)/ ( 1 - 0.0026)) + @margin)
+    puts high_sell[1][0] - (low_buy[1][0] * ((1 + 0.0025)/ ( 1 - 0.0026)) + (0.005+0.3*low_buy[1][0])/@worst_case_trade_amount)
+    if high_sell[1][0] >= ((low_buy[1][0] * ((1 + 0.0025)/ ( 1 - 0.0026)) + (0.005+0.3*low_buy[1][0])/@worst_case_trade_amount) + @margin)
       # if there is an opportunity we check to see which one has the lowest volume
       # this becomes the highest amount we can buy/sell
       find_highest_amount([high_sell, low_buy])
@@ -91,8 +91,11 @@ class Trade < ApplicationRecord
   def self.log_trade(data)
     start_time = Time.now().to_i
 
+    byebug
+
     if orders_fufilled
-      Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_omg: data[4], delta: (data[1]-data[2]) )
+      Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], volume_in_omg: data[4],
+        delta: data[1] - (data[3] * ((1 + 0.0025)/ ( 1 - 0.0026)) + (0.005+0.3*data[3])/@worst_case_trade_amount) )
 
       wallets = check_wallets_after_trade
 
@@ -100,7 +103,8 @@ class Trade < ApplicationRecord
       puts "orders fufilled"
       return true
     else
-      Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], trade_amount_omg: data[4], delta: (data[1]-data[2]) )
+      Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3],volume_in_omg: data[4],
+        delta: data[1] - (data[3] * ((1 + 0.0025)/ ( 1 - 0.0026)) + (0.005+0.3*data[3])/@worst_case_trade_amount) )
 
       wallets = check_wallets_after_trade
 
@@ -213,8 +217,8 @@ class Trade < ApplicationRecord
 
     poloniex_open_trades_response = HTTParty.post(poloniex_post_url, body: open_order_command_poloniex, headers: poloniex_headers)
     liqui_open_trades_response = HTTParty.post(liqui_post_url, body: open_order_command_liqui, headers: liqui_headers)
-    byebug
-    if poloniex_open_trades_response.empty? && liqui_open_trades_response["return"].empty?
+
+    if poloniex_open_trades_response.empty? && liqui_open_trades_response["return"].empty? || liqui_open_trades_response["return"][liqui_open_trades_response["return"].keys[0]]["pair"] == "taas_eth"
       return true
     else
       puts "waiting for orders to fill"
