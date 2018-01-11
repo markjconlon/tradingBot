@@ -29,11 +29,11 @@
                 </tr>
                 <tr>
                   <td>PROFIT DELTA:</td>
-                  <td>0.00001</td>
+                  <td>0.0001</td>
                 </tr>
                 <tr>
                   <td>COMMODITY AMOUNT:</td>
-                  <td>1 OMG</td>
+                  <td>0.5OMG</td>
                 </tr>
               </tbody>
             </table>
@@ -98,13 +98,14 @@
             <table class="table table-striped border">
               <thead>
                 <tr>
-                  <th>Exchange</th>
-                  <th>Type</th>
-                  <th>Status</th>
+                  <th>Sell Exchange</th>
+                  <th>Sell Rate/th>
+                  <th>Buy Exchange</th>
+                  <th>Rate (ETH)</th>
                   <th>Date-Time</th>
-                  <th>Price (ETH)</th>
                   <th>Volume (OMG)</th>
                   <th>Delta</th>
+                  <th>~ETH Gain</th>
                 </tr>
               </thead>
               <tbody>
@@ -115,8 +116,10 @@
                     <td><%= trade.sell_exchange_rate %></td>
                     <td><%= trade.buy_exchange %></td>
                     <td><%= trade.buy_exchange_rate %></td>
+                    <td><%= trade.created_at %></td>
                     <td><%= trade.volume_in_omg %></td>
                     <td><%= trade.delta %></td>
+                    <td><%= trade.delta * trade.volume_in_omg %></td>
                   </tr>
                   <% end %>
                 <% end %>
