@@ -2,7 +2,7 @@ class Trade < ApplicationRecord
 
   has_one :wallet
   @our_volume_limit = 0.5 #OMG to discuss possibly make this a min limit and trade up to a max amount
-  @margin = -0.005
+  @margin = 0.0001
   @worst_case_trade_amount = 96 #volume of OMG on one exchange after perfect REBALANCING so 1/2 the volume of OMG
 
   def self.check_trades(liqui_response, poloniex_response)
@@ -95,7 +95,8 @@ class Trade < ApplicationRecord
 
     if orders_fufilled
       Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3], volume_in_omg: data[4],
-        delta: data[1] - (data[3] * ((1 + 0.0025)/ ( 1 - 0.0026)) + (0.005+0.3*data[3])/@worst_case_trade_amount) )
+        delta: data[1] - (data[3] * ((1 + 0.0025)/ ( 1 - 0.0026)) + (0.005+0.3*data[3])/@worst_case_trade_amount),
+        eth_gain: (data[1] - (data[3] * ((1 + 0.0025)/ ( 1 - 0.0026)) + (0.005+0.3*data[3])/@worst_case_trade_amount) * data[4]) )
 
       wallets = check_wallets_after_trade
 
@@ -104,7 +105,8 @@ class Trade < ApplicationRecord
       return true
     else
       Trade.create(sell_exchange: data[0], sell_exchange_rate: data[1], buy_exchange: data[2], buy_exchange_rate: data[3],volume_in_omg: data[4],
-        delta: data[1] - (data[3] * ((1 + 0.0025)/ ( 1 - 0.0026)) + (0.005+0.3*data[3])/@worst_case_trade_amount) )
+        delta: data[1] - (data[3] * ((1 + 0.0025)/ ( 1 - 0.0026)) + (0.005+0.3*data[3])/@worst_case_trade_amount),
+        eth_gain: (data[1] - (data[3] * ((1 + 0.0025)/ ( 1 - 0.0026)) + (0.005+0.3*data[3])/@worst_case_trade_amount) * data[4]) )
 
       wallets = check_wallets_after_trade
 
@@ -150,8 +152,8 @@ class Trade < ApplicationRecord
         }
 
         # COMMENT OR UNCOMMENT IF YOU WANT IT TO ACTUALLY MAKE TRADES
-        # poloniex_sell_wallet_response = HTTParty.post(poloniex_post_url, body: sell_order_command_poloniex, headers: poloniex_headers)
-        # liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
+        poloniex_sell_wallet_response = HTTParty.post(poloniex_post_url, body: sell_order_command_poloniex, headers: poloniex_headers)
+        liqui_buy_wallet_response = HTTParty.post(liqui_post_url, body: buy_order_command_liqui, headers: liqui_headers)
         puts "SELL ON POLONIEX AND BUY ON LIQUI"
         # puts poloniex_sell_wallet_response
         # puts liqui_buy_wallet_response
@@ -178,8 +180,8 @@ class Trade < ApplicationRecord
         }
 
         # COMMENT OR UNCOMMENT IF YOU WANT IT TO ACTUALLY MAKE TRADES
-        # liqui_sell_wallet_response = HTTParty.post(liqui_post_url, body: sell_order_command_liqui, headers: liqui_headers)
-        # poloniex_buy_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
+        poloniex_buy_wallet_response = HTTParty.post(poloniex_post_url, body: buy_order_command_poloniex, headers: poloniex_headers)
+        liqui_sell_wallet_response = HTTParty.post(liqui_post_url, body: sell_order_command_liqui, headers: liqui_headers)
         puts "SELL ON LIQUI AND BUY ON POLONIEX"
         # puts liqui_sell_wallet_response
         # puts poloniex_buy_wallet_response

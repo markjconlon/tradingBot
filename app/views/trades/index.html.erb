@@ -60,15 +60,15 @@
               </div>
               <div class="cycle-time dark border">
                 <h6>START DATE</h6>
-                <p><%= "#{@trades.first.created_at.day}/#{@trades.first.created_at.month}/#{@trades.first.created_at.year}"%></p>
+                <p><%= "#{@trades.first.created_at.day}/#{@trades.first.created_at.month}/#{@trades.first.created_at.year}" unless @trades[0].nil?%></p>
               </div>
               <div class="cycle-time dark border">
                 <h6>START TIME</h6>
-                <p><%= "#{@trades.first.created_at.to_s.split(" ")[1]}"%></p>
+                <p><%= "#{@trades.first.created_at.to_s.split(" ")[1]}" unless @trades[0].nil?%></p>
               </div>
               <div class="cycle-time dark border">
                 <h6>TIME ACTIVE (Mins)</h6>
-                <p><%= "#{(Time.now.to_i - @trades.first.created_at.to_i)/60}"%></p>
+                <p><%= "#{(Time.now.to_i - @trades.first.created_at.to_i)/60}" unless @trades[0].nil?%></p>
               </div>
             </div>
           </div>
