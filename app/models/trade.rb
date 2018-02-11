@@ -2,13 +2,13 @@ class Trade < ApplicationRecord
 
   has_one :wallet
   @our_volume_limit = 0.5 #OMG to discuss possibly make this a min limit and trade up to a max amount
-  @margin = 0.0001
-  @worst_case_trade_amount = 96 #volume of OMG on one exchange after perfect REBALANCING so 1/2 the volume of OMG
+  @margin = 0.00005
+  @worst_case_trade_amount = 124 #volume of OMG on one exchange after perfect REBALANCING so 1/2 the volume of OMG
 
   def self.check_trades(liqui_response, poloniex_response)
 
     # calls to the apis are made on in the controller and passed down
-    return if liqui_response["success"] == 0
+    return if liqui_response["success"].nil?
     liqui_sell = liqui_response["omg_eth"]["asks"][0]
     liqui_buy = liqui_response["omg_eth"]["bids"][0]
     poloniex_sell = [(poloniex_response["asks"][0][0]).to_f, poloniex_response["asks"][0][1]]
