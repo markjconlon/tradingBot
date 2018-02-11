@@ -8,7 +8,7 @@ class Trade < ApplicationRecord
   def self.check_trades(liqui_response, poloniex_response)
 
     # calls to the apis are made on in the controller and passed down
-    return if liqui_response["success"].nil?
+    return if liqui_response["omg_eth"].nil?
     liqui_sell = liqui_response["omg_eth"]["asks"][0]
     liqui_buy = liqui_response["omg_eth"]["bids"][0]
     poloniex_sell = [(poloniex_response["asks"][0][0]).to_f, poloniex_response["asks"][0][1]]
